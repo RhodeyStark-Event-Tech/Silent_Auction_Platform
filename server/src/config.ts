@@ -41,4 +41,19 @@ export const config = {
   jwtSecret: required('JWT_SECRET', process.env.JWT_SECRET),
   // Admin session lifetime.
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
+
+  // Upstash Redis (REST) — optional. When set, rate limiting is shared across
+  // all serverless instances. When unset, we fall back to per-instance memory.
+  upstash: {
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  },
+
+  // Per-IP rate limits. Generous by default because at a live event many
+  // bidders share one public IP (venue WiFi/NAT) — a low ceiling would throttle
+  // the whole room. Tunable via env without a redeploy.
+  rateLimit: {
+    bidsPerMinute: Number(process.env.RATE_LIMIT_BIDS_PER_MIN ?? 300),
+    loginPer15Min: Number(process.env.RATE_LIMIT_LOGIN_PER_15MIN ?? 20),
+  },
 } as const;

@@ -1,32 +1,16 @@
-// Vercel serverless entrypoint — TEMPORARY DEBUG VERSION.
+// Vercel serverless entrypoint.
 //
-// The app is imported dynamically INSIDE the handler so that any
-// initialization error (e.g. a missing env var that makes config.ts throw, or
-// a module-resolution problem) is caught and surfaced in the HTTP response and
-// logs — instead of an opaque FUNCTION_INVOCATION_FAILED with no detail.
+// Vercel invokes the default export as the request handler. An Express app is
+// a `(req, res)` handler, so we export it directly. We import the COMPILED app
+// from `server/dist` (produced by `npm run build`) rather than the TS source so
+// the bundler resolves the ESM `.js` import paths against real files.
 //
-// Revert to the clean `export default app` form once the root cause is known.
-export default async function handler(req: any, res: any): Promise<void> {
-  try {
-    const mod = await import('../server/dist/app.js');
-    const app = (mod as any).app ?? (mod as any).default;
-    if (typeof app !== 'function') {
-      throw new Error(
-        `Imported app is not a request handler (type: ${typeof app}; keys: ${Object.keys(mod).join(',')})`,
-      );
-    }
-    return app(req, res);
-  } catch (err) {
-    const e = err as Error;
-    console.error('Function boot error:', e);
-    res.statusCode = 500;
-    res.setHeader('content-type', 'application/json');
-    res.end(
-      JSON.stringify({
-        bootError: e?.message ?? String(err),
-        name: e?.name,
-        stack: e?.stack?.split('\n').slice(0, 6),
-      }),
-    );
-  }
-}
+// All routes are mounted under `/api/*` inside the app, and `vercel.json`
+// rewrites every `/api/*` request here, so paths line up without changes.
+//
+// Note: your editor may flag the import below as missing until `npm run build`
+// has produced `server/dist` (a gitignored build artifact). It resolves fine in
+// the Vercel build, where the server is compiled first.
+import { app } from '../server/dist/app.js';
+
+export default app;

@@ -5,6 +5,7 @@ import {
   adminDeleteItem,
   adminFetchResults,
   adminNotifyWinners,
+  adminExportWinners,
   clearToken,
   ApiError,
 } from '../api';
@@ -92,6 +93,27 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
       );
     } catch (err) {
       handleError(err);
+    }
+  }
+
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport(): Promise<void> {
+    if (
+      !window.confirm(
+        'Export the current winners to Google Sheets? This overwrites the sheet with a fresh snapshot.',
+      )
+    )
+      return;
+    setExporting(true);
+    setNotice(null);
+    try {
+      const res = await adminExportWinners();
+      setNotice(`Exported ${res.exported} winner row(s) to Google Sheets.`);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -186,9 +208,19 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
           <>
             <div className="admin-toolbar">
               <p style={{ margin: 0 }}>Computed winners (honours multiples &amp; thresholds)</p>
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => handleNotify()}>
-                Email all winners
-              </button>
+              <div className="admin-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  onClick={() => void handleExport()}
+                  disabled={exporting}
+                >
+                  {exporting ? 'Exporting…' : 'Export to Google Sheets'}
+                </button>
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => handleNotify()}>
+                  Email all winners
+                </button>
+              </div>
             </div>
 
             {results.map(({ item, winners }) => (

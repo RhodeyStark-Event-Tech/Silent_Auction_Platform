@@ -114,3 +114,71 @@ export function determineWinners(item: AuctionItem, bids: Bid[]): ItemWinner[] {
     .filter((bid) => bid.amount >= floor)
     .map((bid, index) => ({ bid, rank: index + 1 }));
 }
+
+/** One row per winning bidder, ready to write to a spreadsheet. */
+export interface WinnerRow {
+  name: string;
+  email: string;
+  phone: string;
+  /** e.g. "Twins Tickets ($125); Wine Basket ($45)". */
+  items: string;
+  /** Sum of this bidder's winning bids. */
+  total: number;
+  /** Donor contact per item, e.g. "Twins Tickets: Eric Reimer …; Wine Basket: Patty Douglas". */
+  donorContacts: string;
+}
+
+/**
+ * Aggregate per-item winners into one row per bidder (keyed by email), summing
+ * what they owe and combining the items they won and the donor contacts for
+ * those items. Pure so it is trivial to test.
+ */
+export function aggregateWinnersByBidder(
+  results: { item: AuctionItem; winners: ItemWinner[] }[],
+): WinnerRow[] {
+  interface Acc {
+    name: string;
+    email: string;
+    phone: string;
+    items: string[];
+    total: number;
+    contacts: string[];
+    /** created_at (ms) of the latest winning bid — used to pick the freshest name/phone. */
+    latest: number;
+  }
+  const byEmail = new Map<string, Acc>();
+
+  for (const { item, winners } of results) {
+    for (const { bid } of winners) {
+      const key = bid.bidder_email.trim().toLowerCase();
+      const acc = byEmail.get(key) ?? {
+        name: bid.bidder_name,
+        email: bid.bidder_email,
+        phone: bid.bidder_phone,
+        items: [],
+        total: 0,
+        contacts: [],
+        latest: 0,
+      };
+      const ts = new Date(bid.created_at).getTime();
+      if (ts >= acc.latest) {
+        acc.name = bid.bidder_name;
+        acc.phone = bid.bidder_phone;
+        acc.latest = ts;
+      }
+      acc.items.push(`${item.title} ($${bid.amount})`);
+      acc.total += bid.amount;
+      acc.contacts.push(`${item.title}: ${item.contact ?? 'no donor contact on file'}`);
+      byEmail.set(key, acc);
+    }
+  }
+
+  return [...byEmail.values()].map((a) => ({
+    name: a.name,
+    email: a.email,
+    phone: a.phone,
+    items: a.items.join('; '),
+    total: a.total,
+    donorContacts: a.contacts.join('; '),
+  }));
+}

@@ -56,4 +56,12 @@ export const config = {
     bidsPerMinute: Number(process.env.RATE_LIMIT_BIDS_PER_MIN ?? 300),
     loginPer15Min: Number(process.env.RATE_LIMIT_LOGIN_PER_15MIN ?? 20),
   },
+
+  // Google Sheets export (optional). When set, the admin "Export winners" action
+  // POSTs the winner rows to a Google Apps Script web-app URL that appends them
+  // to a sheet. The secret must match the one hard-coded in that Apps Script.
+  sheets: {
+    webhookUrl: process.env.SHEETS_WEBHOOK_URL,
+    webhookSecret: process.env.SHEETS_WEBHOOK_SECRET,
+  },
 } as const;

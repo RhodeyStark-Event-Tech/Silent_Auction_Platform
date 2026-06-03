@@ -3,8 +3,9 @@ import { z } from 'zod';
 import { supabase, ITEMS_TABLE, BIDS_TABLE } from '../supabase.js';
 import type { AuctionItem, Bid } from '../types.js';
 import { issueAdminToken, requireAdmin, verifyAdminCredentials } from '../middleware/auth.js';
-import { determineWinners } from '../services/bidLogic.js';
+import { aggregateWinnersByBidder, determineWinners } from '../services/bidLogic.js';
 import { sendWinnerEmail } from '../services/email.js';
+import { exportWinnersToSheet } from '../services/sheetsExport.js';
 
 export const adminRouter = Router();
 
@@ -215,4 +216,48 @@ adminRouter.post('/notify-winners', async (req: Request, res: Response) => {
   }
 
   res.json({ notified, failures });
+});
+
+/**
+ * Export the computed winners to Google Sheets (one row per winning bidder).
+ * Recomputes winners, aggregates per bidder, and POSTs to the configured
+ * Apps Script webhook, which overwrites the sheet with a fresh snapshot.
+ */
+adminRouter.post('/export-winners', async (_req: Request, res: Response) => {
+  const { data: items, error: itemsError } = await supabase
+    .from(ITEMS_TABLE)
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (itemsError) {
+    res.status(500).json({ error: 'Failed to load items.' });
+    return;
+  }
+
+  const { data: bids, error: bidsError } = await supabase.from(BIDS_TABLE).select('*');
+  if (bidsError) {
+    res.status(500).json({ error: 'Failed to load bids.' });
+    return;
+  }
+
+  const bidsByItem = new Map<string, Bid[]>();
+  for (const bid of (bids ?? []) as Bid[]) {
+    const list = bidsByItem.get(bid.item_id) ?? [];
+    list.push(bid);
+    bidsByItem.set(bid.item_id, list);
+  }
+
+  const results = ((items ?? []) as AuctionItem[]).map((item) => ({
+    item,
+    winners: determineWinners(item, bidsByItem.get(item.id) ?? []),
+  }));
+
+  const rows = aggregateWinnersByBidder(results);
+
+  try {
+    const result = await exportWinnersToSheet(rows);
+    res.json({ exported: result.exported });
+  } catch (err) {
+    console.error('Sheets export failed:', err);
+    res.status(502).json({ error: (err as Error).message });
+  }
 });

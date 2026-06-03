@@ -107,3 +107,7 @@ export function adminNotifyWinners(
     }),
   });
 }
+
+export function adminExportWinners(): Promise<{ exported: number }> {
+  return request('/admin/export-winners', { method: 'POST' });
+}

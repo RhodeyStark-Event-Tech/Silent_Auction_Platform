@@ -41,12 +41,25 @@ create index if not exists bids_item_id_idx on public.bids (item_id);
 create index if not exists bids_item_amount_idx on public.bids (item_id, amount desc);
 
 -- ---------------------------------------------------------------------------
--- Row Level Security
+-- Row Level Security & access lockdown
+--
 -- All access is mediated by the Express API using the service-role key, which
--- bypasses RLS. We still enable RLS and add NO permissive policies so that the
--- anon/public keys cannot read PII directly even if they leak.
+-- bypasses both RLS and these grants. The public never queries Supabase
+-- directly — it only calls the API, which anonymises bids and hides donor
+-- contact info. So the anon/authenticated roles should have ZERO access.
+--
+-- Defense in depth, two independent locks:
+--   1. Revoke table privileges from the public roles (grant-level lock).
+--   2. Enable + FORCE row level security with NO policies (row-level lock).
+-- Intentionally NO permissive policies exist: adding one would expose bidder
+-- PII / donor contacts to the public anon key. Do not add policies here.
 -- ---------------------------------------------------------------------------
+revoke all on public.items from anon, authenticated;
+revoke all on public.bids  from anon, authenticated;
+
 alter table public.items enable row level security;
 alter table public.bids  enable row level security;
 
--- (Intentionally no public policies. The server uses the service-role key.)
+-- FORCE so RLS applies even to the table owner; service-role still bypasses.
+alter table public.items force row level security;
+alter table public.bids  force row level security;

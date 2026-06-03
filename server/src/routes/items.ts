@@ -44,6 +44,8 @@ itemsRouter.get('/', async (_req: Request, res: Response) => {
     const ranked = rankBids(itemBids);
     return {
       ...item,
+      // Donor contact is admin-only — never expose it on the public endpoint.
+      contact: null,
       current_high_bid: ranked[0]?.amount ?? null,
       next_minimum_bid: nextMinimumBid(item, itemBids),
       bid_count: itemBids.length,

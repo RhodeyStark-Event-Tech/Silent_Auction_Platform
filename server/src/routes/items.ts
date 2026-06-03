@@ -19,6 +19,7 @@ itemsRouter.get('/', async (_req: Request, res: Response) => {
     .order('sort_order', { ascending: true });
 
   if (error) {
+    console.error('Supabase error loading items:', error);
     res.status(500).json({ error: 'Failed to load auction items.' });
     return;
   }
@@ -28,6 +29,7 @@ itemsRouter.get('/', async (_req: Request, res: Response) => {
     .select('*');
 
   if (bidsError) {
+    console.error('Supabase error loading bids:', bidsError);
     res.status(500).json({ error: 'Failed to load bids.' });
     return;
   }

@@ -10,7 +10,7 @@
 //
 // Note: until you run `npm run build`, your editor may flag the import below as
 // missing — that's expected (`server/dist` is a build artifact and gitignored).
-// @ts-expect-error - resolved at build time from server/dist
+// It resolves fine in the Vercel build, where the server is compiled first.
 import { app } from '../server/dist/app.js';
 
 export default app;

@@ -29,7 +29,7 @@ export function BidList({ bids, winningCount, limit = 5 }: BidListProps): JSX.El
           <span className="bidlist__initials">
             {bid.initials}
             {index < winningCount && (
-              <span className="badge" style={{ marginLeft: '0.4rem', color: 'var(--accent)' }}>
+              <span className="badge badge--star">
                 ★
               </span>
             )}

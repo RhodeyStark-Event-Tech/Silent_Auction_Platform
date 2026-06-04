@@ -216,14 +216,14 @@ export function AdminItemForm({ item, onClose, onSaved }: AdminItemFormProps): J
               onChange={(e) => update('sort_order', e.target.value)}
             />
           </div>
-          <div className="field field--checkbox" style={{ alignSelf: 'end', paddingBottom: '0.9rem' }}>
+          <div className="field field--checkbox field--end">
             <input
               id="f-event"
               type="checkbox"
               checked={form.product_at_event}
               onChange={(e) => update('product_at_event', e.target.checked)}
             />
-            <label htmlFor="f-event" style={{ margin: 0 }}>
+            <label htmlFor="f-event" className="u-m0">
               Available at the event
             </label>
           </div>

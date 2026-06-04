@@ -42,7 +42,7 @@ export function ItemCard({ item, onBid }: ItemCardProps): JSX.Element {
         <p className="item-card__desc">{item.description}</p>
 
         {item.product_at_event && (
-          <p className="badge" style={{ background: 'var(--primary-soft)', color: 'var(--primary-dark)', alignSelf: 'flex-start' }}>
+          <p className="badge badge--event">
             Available at the event
           </p>
         )}

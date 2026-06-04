@@ -180,7 +180,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
     <div className="admin-wrap">
       <div className="container">
         <div className="admin-toolbar">
-          <h1 style={{ margin: 0 }}>Admin dashboard</h1>
+          <h1 className="u-m0">Admin dashboard</h1>
           <div className="admin-actions">
             <button type="button" className="btn btn--ghost btn--sm" onClick={onExit}>
               View site
@@ -198,11 +198,11 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
           </div>
         </div>
 
-        <div className="admin-actions" role="tablist" aria-label="Admin sections" style={{ marginBottom: '1rem' }}>
+        <div className="admin-actions u-mb" role="tablist" aria-label="Admin sections">
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'items'}
+            aria-selected={tab === 'items' ? 'true' : 'false'}
             className={`btn btn--sm ${tab === 'items' ? 'btn--primary' : 'btn--ghost'}`}
             onClick={() => setTab('items')}
           >
@@ -211,7 +211,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'results'}
+            aria-selected={tab === 'results' ? 'true' : 'false'}
             className={`btn btn--sm ${tab === 'results' ? 'btn--primary' : 'btn--ghost'}`}
             onClick={() => setTab('results')}
           >
@@ -220,7 +220,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'qr'}
+            aria-selected={tab === 'qr' ? 'true' : 'false'}
             className={`btn btn--sm ${tab === 'qr' ? 'btn--primary' : 'btn--ghost'}`}
             onClick={() => setTab('qr')}
           >
@@ -244,7 +244,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
         ) : tab === 'items' ? (
           <>
             <div className="admin-toolbar">
-              <p style={{ margin: 0 }}>{items.length} item(s)</p>
+              <p className="u-m0">{items.length} item(s)</p>
               <button type="button" className="btn btn--primary btn--sm" onClick={() => setCreating(true)}>
                 + New item
               </button>
@@ -270,7 +270,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
                       <button
                         type="button"
                         className="btn btn--ghost btn--sm"
-                        aria-expanded={openBids?.itemId === item.id}
+                        aria-expanded={openBids?.itemId === item.id ? 'true' : 'false'}
                         onClick={() => void toggleBids(item)}
                       >
                         {openBids?.itemId === item.id ? 'Hide bids' : `Bids (${item.bid_count})`}
@@ -292,26 +292,15 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
                 </div>
 
                 {openBids?.itemId === item.id && (
-                  <div className="admin-item" style={{ display: 'block', background: 'var(--bg-soft, #f7f7f9)' }}>
+                  <div className="admin-item admin-item--bids">
                     {bidsLoading ? (
                       <p className="admin-item__meta">Loading bids…</p>
                     ) : openBids.bids.length === 0 ? (
                       <p className="admin-item__meta">No bids on this item.</p>
                     ) : (
-                      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                      <ul className="plain-list">
                         {openBids.bids.map((bid) => (
-                          <li
-                            key={bid.id}
-                            className="admin-item__meta"
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              gap: '0.75rem',
-                              padding: '0.4rem 0',
-                              borderTop: '1px solid var(--border, #eee)',
-                            }}
-                          >
+                          <li key={bid.id} className="admin-item__meta bid-row">
                             <span>
                               <strong>{money(bid.amount)}</strong> · {bid.bidder_name} · {bid.bidder_email} ·{' '}
                               {bid.bidder_phone}
@@ -335,7 +324,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
         ) : tab === 'results' ? (
           <>
             <div className="admin-toolbar">
-              <p style={{ margin: 0 }}>Computed winners (honours multiples &amp; thresholds)</p>
+              <p className="u-m0">Computed winners (honours multiples &amp; thresholds)</p>
               <div className="admin-actions">
                 <button
                   type="button"
@@ -352,12 +341,12 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
             </div>
 
             {results.map(({ item, winners }) => (
-              <div key={item.id} className="admin-item" style={{ display: 'block' }}>
+              <div key={item.id} className="admin-item admin-item--block">
                 <strong>{item.title}</strong>
                 {winners.length === 0 ? (
                   <p className="admin-item__meta">No qualifying winners yet.</p>
                 ) : (
-                  <ol style={{ margin: '0.5rem 0 0', paddingLeft: '1.2rem' }}>
+                  <ol className="winner-list">
                     {winners.map(({ bid, rank }) => (
                       <li key={bid.id} className="admin-item__meta">
                         #{rank} · {bid.bidder_name} ({bid.bidder_email}, {bid.bidder_phone}) —{' '}
@@ -372,7 +361,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
         ) : (
           <>
             <div className="admin-toolbar">
-              <p style={{ margin: 0 }}>One QR code per item — guests scan to open that item and bid.</p>
+              <p className="u-m0">One QR code per item — guests scan to open that item and bid.</p>
               <button type="button" className="btn btn--primary btn--sm" onClick={() => window.print()}>
                 Print QR sheet
               </button>

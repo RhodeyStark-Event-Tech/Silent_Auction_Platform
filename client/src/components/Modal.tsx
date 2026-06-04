@@ -68,7 +68,7 @@ export function Modal({ titleId, title, onClose, children }: ModalProps): JSX.El
         ref={dialogRef}
       >
         <div className="modal__head">
-          <h2 id={titleId} style={{ margin: 0 }}>
+          <h2 id={titleId} className="u-m0">
             {title}
           </h2>
           <button

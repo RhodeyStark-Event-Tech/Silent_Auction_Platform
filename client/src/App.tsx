@@ -72,7 +72,7 @@ export default function App(): JSX.Element {
     return (
       <>
         <Nav onAdminClick={handleAdminClick} isAdmin={isAdmin} />
-        <main id="main">
+        <main>
           <AdminDashboard
             onLogout={() => {
               setIsAdmin(false);
@@ -91,8 +91,8 @@ export default function App(): JSX.Element {
     return (
       <>
         <Nav onAdminClick={handleAdminClick} isAdmin={isAdmin} />
-        <main id="main">
-          <div className="container" style={{ paddingTop: '1.5rem' }}>
+        <main>
+          <div className="container focus-view">
             <button type="button" className="btn btn--ghost btn--sm" onClick={backToAll}>
               ← See all items
             </button>
@@ -102,15 +102,11 @@ export default function App(): JSX.Element {
                 Loading…
               </div>
             ) : focusedItem ? (
-              <section
-                className="items items--single"
-                aria-label={focusedItem.title}
-                style={{ marginTop: '1rem' }}
-              >
+              <section className="items items--single" aria-label={focusedItem.title}>
                 <ItemCard item={focusedItem} onBid={(it) => setBidItem(it)} />
               </section>
             ) : (
-              <div className="alert alert--error" role="alert" style={{ marginTop: '1rem' }}>
+              <div className="alert alert--error u-mt" role="alert">
                 Sorry, we couldn’t find that item. Please pick it from the full list.
               </div>
             )}
@@ -145,7 +141,7 @@ export default function App(): JSX.Element {
       </a>
       <Nav onAdminClick={handleAdminClick} isAdmin={isAdmin} />
 
-      <main id="main">
+      <main>
         <Hero />
         <Gallery />
 

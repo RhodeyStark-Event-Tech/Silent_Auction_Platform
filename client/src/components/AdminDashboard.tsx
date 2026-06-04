@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { AuctionItem, AuctionResult, AdminBid } from '../types';
 import {
   fetchItems,
@@ -20,7 +21,12 @@ interface AdminDashboardProps {
   onExit: () => void;
 }
 
-type Tab = 'items' | 'results';
+type Tab = 'items' | 'results' | 'qr';
+
+/** The public deep-link a guest reaches by scanning an item's QR code. */
+function itemUrl(id: string): string {
+  return `${window.location.origin}/?item=${id}`;
+}
 
 export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.Element {
   const [tab, setTab] = useState<Tab>('items');
@@ -67,8 +73,8 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
   }
 
   useEffect(() => {
-    if (tab === 'items') void loadItems();
-    else void loadResults();
+    if (tab === 'results') void loadResults();
+    else void loadItems(); // 'items' and 'qr' both need the items list
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -211,6 +217,15 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
           >
             Winners
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'qr'}
+            className={`btn btn--sm ${tab === 'qr' ? 'btn--primary' : 'btn--ghost'}`}
+            onClick={() => setTab('qr')}
+          >
+            QR codes
+          </button>
         </div>
 
         {notice && (
@@ -317,7 +332,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
               </div>
             ))}
           </>
-        ) : (
+        ) : tab === 'results' ? (
           <>
             <div className="admin-toolbar">
               <p style={{ margin: 0 }}>Computed winners (honours multiples &amp; thresholds)</p>
@@ -353,6 +368,24 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
                 )}
               </div>
             ))}
+          </>
+        ) : (
+          <>
+            <div className="admin-toolbar">
+              <p style={{ margin: 0 }}>One QR code per item — guests scan to open that item and bid.</p>
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => window.print()}>
+                Print QR sheet
+              </button>
+            </div>
+            <div className="qr-sheet">
+              {items.map((item) => (
+                <div key={item.id} className="qr-card">
+                  <QRCodeSVG value={itemUrl(item.id)} size={150} level="M" marginSize={2} />
+                  <strong className="qr-card__title">{item.title}</strong>
+                  <span className="qr-card__url">{itemUrl(item.id)}</span>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>

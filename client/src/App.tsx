@@ -22,6 +22,17 @@ export default function App(): JSX.Element {
   const [view, setView] = useState<View>('public');
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // A guest who scans an item's QR code lands on `/?item=<id>` — show just that
+  // item. Empty when browsing normally.
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get('item'),
+  );
+
+  function backToAll(): void {
+    setFocusedItemId(null);
+    window.history.pushState({}, '', window.location.pathname);
+  }
+
   const loadItems = useCallback(async (fresh = false): Promise<void> => {
     try {
       const res = await fetchItems(fresh ? { fresh: true } : undefined);
@@ -70,6 +81,59 @@ export default function App(): JSX.Element {
             onExit={() => setView('public')}
           />
         </main>
+      </>
+    );
+  }
+
+  // Deep-linked single item (e.g. scanned from a printed QR code at the event).
+  if (focusedItemId) {
+    const focusedItem = items.find((i) => i.id === focusedItemId) ?? null;
+    return (
+      <>
+        <Nav onAdminClick={handleAdminClick} isAdmin={isAdmin} />
+        <main id="main">
+          <div className="container" style={{ paddingTop: '1.5rem' }}>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={backToAll}>
+              ← See all items
+            </button>
+
+            {loading ? (
+              <div className="spinner" role="status">
+                Loading…
+              </div>
+            ) : focusedItem ? (
+              <section
+                className="items items--single"
+                aria-label={focusedItem.title}
+                style={{ marginTop: '1rem' }}
+              >
+                <ItemCard item={focusedItem} onBid={(it) => setBidItem(it)} />
+              </section>
+            ) : (
+              <div className="alert alert--error" role="alert" style={{ marginTop: '1rem' }}>
+                Sorry, we couldn’t find that item. Please pick it from the full list.
+              </div>
+            )}
+          </div>
+        </main>
+
+        {bidItem && (
+          <BidModal
+            item={bidItem}
+            onClose={() => setBidItem(null)}
+            onSuccess={() => handleBidSuccess()}
+          />
+        )}
+        {showLogin && (
+          <AdminLogin
+            onClose={() => setShowLogin(false)}
+            onSuccess={() => {
+              setShowLogin(false);
+              setIsAdmin(true);
+              setView('admin');
+            }}
+          />
+        )}
       </>
     );
   }

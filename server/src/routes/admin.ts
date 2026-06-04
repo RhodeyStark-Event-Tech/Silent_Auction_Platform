@@ -47,7 +47,17 @@ const itemSchema = z.object({
   increment: z.number().positive(),
   quantity: z.number().int().positive().default(1),
   threshold: z.number().nonnegative().nullable().default(null),
-  image_url: z.string().trim().url().nullable().or(z.literal('')).default(null),
+  // Accept a full URL (https://…) OR a site-relative path (e.g. /items/x.jpg)
+  // so item photos can live in client/public alongside the hero/gallery.
+  image_url: z
+    .string()
+    .trim()
+    .refine(
+      (v) => v === '' || v.startsWith('/') || /^https?:\/\//i.test(v),
+      'Image must be a full URL (https://…) or a path starting with "/".',
+    )
+    .nullable()
+    .default(null),
   contact: z.string().trim().max(300).nullable().default(null),
   product_at_event: z.boolean().default(false),
   sort_order: z.number().int().default(0),

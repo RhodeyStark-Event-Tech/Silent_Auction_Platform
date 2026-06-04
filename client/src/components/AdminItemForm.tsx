@@ -182,14 +182,18 @@ export function AdminItemForm({ item, onClose, onSaved }: AdminItemFormProps): J
         </div>
 
         <div className="field">
-          <label htmlFor="f-image">Image URL</label>
+          <label htmlFor="f-image">Image</label>
           <input
             id="f-image"
-            type="url"
-            placeholder="https://…"
+            type="text"
+            placeholder="/items/photo.jpg or https://…"
             value={form.image_url}
             onChange={(e) => update('image_url', e.target.value)}
+            aria-describedby="f-image-hint"
           />
+          <p id="f-image-hint" className="field__hint">
+            A site path like /items/twins.jpg (file lives in client/public/items/) or a full image URL.
+          </p>
         </div>
 
         <div className="field">

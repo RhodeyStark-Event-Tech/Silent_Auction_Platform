@@ -19,9 +19,9 @@ export const heroContent = {
 
 /** Up to 5 gallery photos. Set a path string to show a photo, or null for a placeholder. */
 export const galleryPhotos: Array<{ src: string | null; alt: string }> = [
-  { src: '/gallery/photo1.jpg', alt: 'Ashleigh after completing a triathlon, wearing her medal' },
-  { src: '/gallery/photo2.jpg', alt: 'Ashleigh smiling at the gym' },
-  { src: '/gallery/photo3.jpg', alt: 'Ashleigh posing by the Fearless Girl statue in New York City' },
-  { src: '/gallery/photo4.jpg', alt: 'Ashleigh celebrating at a lakeside dinner' },
-  { src: '/gallery/photo5.jpg', alt: 'Ashleigh coaching a poolside fitness class' },
+  { src: '/gallery/photo1.jpg', alt: 'Ashleigh smiling in athletic wear at the gym' },
+  { src: '/gallery/photo2.jpg', alt: 'Ashleigh in a white dress at a waterfront dinner, with a colorful bouquet on the table' },
+  { src: '/gallery/photo3.jpg', alt: 'Ashleigh hugging her daughter outdoors' },
+  { src: '/gallery/photo4.jpg', alt: 'Ashleigh and her family outdoors' },
+  { src: '/gallery/photo5.jpg', alt: 'Ashleigh posing confidently behind the Fearless Girl statue in New York City' },
 ];

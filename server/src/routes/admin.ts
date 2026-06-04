@@ -139,6 +139,16 @@ adminRouter.delete('/items/:id/bids', async (req: Request, res: Response) => {
   res.json({ cleared: count ?? 0 });
 });
 
+/** Delete a single bid by id (e.g. removing one bogus/test bid). */
+adminRouter.delete('/bids/:bidId', async (req: Request, res: Response) => {
+  const { error } = await supabase.from(BIDS_TABLE).delete().eq('id', req.params.bidId);
+  if (error) {
+    res.status(500).json({ error: 'Failed to delete bid.' });
+    return;
+  }
+  res.status(204).end();
+});
+
 /** Full bid detail (with PII) for the admin only. */
 adminRouter.get('/items/:id/bids', async (req: Request, res: Response) => {
   const { data, error } = await supabase

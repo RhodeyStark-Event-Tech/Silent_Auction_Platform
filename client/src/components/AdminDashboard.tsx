@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { AuctionItem, AuctionResult } from '../types';
+import type { AuctionItem, AuctionResult, AdminBid } from '../types';
 import {
   fetchItems,
   adminDeleteItem,
   adminClearItemBids,
+  adminFetchItemBids,
+  adminDeleteBid,
   adminFetchResults,
   adminNotifyWinners,
   adminExportWinners,
@@ -90,6 +92,40 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
     try {
       const res = await adminClearItemBids(item.id);
       setNotice(`Cleared ${res.cleared} bid(s) from "${item.title}".`);
+      if (openBids?.itemId === item.id) setOpenBids(null);
+      await loadItems();
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  // Inline per-item bid list (with per-bid delete), toggled open from the row.
+  const [openBids, setOpenBids] = useState<{ itemId: string; bids: AdminBid[] } | null>(null);
+  const [bidsLoading, setBidsLoading] = useState(false);
+
+  async function toggleBids(item: AuctionItem): Promise<void> {
+    if (openBids?.itemId === item.id) {
+      setOpenBids(null);
+      return;
+    }
+    setBidsLoading(true);
+    try {
+      const res = await adminFetchItemBids(item.id);
+      setOpenBids({ itemId: item.id, bids: res.bids });
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setBidsLoading(false);
+    }
+  }
+
+  async function handleDeleteBid(bid: AdminBid): Promise<void> {
+    if (!window.confirm(`Delete the ${money(bid.amount)} bid from ${bid.bidder_name}? This cannot be undone.`))
+      return;
+    try {
+      await adminDeleteBid(bid.id);
+      const res = await adminFetchItemBids(bid.item_id);
+      setOpenBids({ itemId: bid.item_id, bids: res.bids });
       await loadItems();
     } catch (err) {
       handleError(err);
@@ -200,33 +236,84 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
             </div>
 
             {items.map((item) => (
-              <div key={item.id} className="admin-item">
-                <div>
-                  <strong>{item.title}</strong>
-                  <div className="admin-item__meta">
-                    Value {money(item.value)} · Min {money(item.minimum_bid)} · +
-                    {money(item.increment)} · Qty {item.quantity}
-                    {item.threshold != null ? ` · Threshold ${money(item.threshold)}` : ''} ·{' '}
-                    {item.bid_count} bid(s)
+              <div key={item.id}>
+                <div className="admin-item">
+                  <div>
+                    <strong>{item.title}</strong>
+                    <div className="admin-item__meta">
+                      Value {money(item.value)} · Min {money(item.minimum_bid)} · +
+                      {money(item.increment)} · Qty {item.quantity}
+                      {item.threshold != null ? ` · Threshold ${money(item.threshold)}` : ''} ·{' '}
+                      {item.bid_count} bid(s)
+                    </div>
+                  </div>
+                  <div className="admin-actions">
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(item)}>
+                      Edit
+                    </button>
+                    {item.bid_count > 0 && (
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        aria-expanded={openBids?.itemId === item.id}
+                        onClick={() => void toggleBids(item)}
+                      >
+                        {openBids?.itemId === item.id ? 'Hide bids' : `Bids (${item.bid_count})`}
+                      </button>
+                    )}
+                    {item.bid_count > 0 && (
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => handleClearBids(item)}
+                      >
+                        Clear bids
+                      </button>
+                    )}
+                    <button type="button" className="btn btn--danger btn--sm" onClick={() => handleDelete(item)}>
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <div className="admin-actions">
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(item)}>
-                    Edit
-                  </button>
-                  {item.bid_count > 0 && (
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => handleClearBids(item)}
-                    >
-                      Clear bids
-                    </button>
-                  )}
-                  <button type="button" className="btn btn--danger btn--sm" onClick={() => handleDelete(item)}>
-                    Delete
-                  </button>
-                </div>
+
+                {openBids?.itemId === item.id && (
+                  <div className="admin-item" style={{ display: 'block', background: 'var(--bg-soft, #f7f7f9)' }}>
+                    {bidsLoading ? (
+                      <p className="admin-item__meta">Loading bids…</p>
+                    ) : openBids.bids.length === 0 ? (
+                      <p className="admin-item__meta">No bids on this item.</p>
+                    ) : (
+                      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                        {openBids.bids.map((bid) => (
+                          <li
+                            key={bid.id}
+                            className="admin-item__meta"
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              padding: '0.4rem 0',
+                              borderTop: '1px solid var(--border, #eee)',
+                            }}
+                          >
+                            <span>
+                              <strong>{money(bid.amount)}</strong> · {bid.bidder_name} · {bid.bidder_email} ·{' '}
+                              {bid.bidder_phone}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn--danger btn--sm"
+                              onClick={() => handleDeleteBid(bid)}
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </>

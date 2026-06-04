@@ -1,4 +1,4 @@
-import type { AuctionItem, PublicBid, AuctionResult } from './types';
+import type { AuctionItem, PublicBid, AuctionResult, AdminBid } from './types';
 
 const TOKEN_KEY = 'auction_admin_token';
 
@@ -96,6 +96,12 @@ export function adminDeleteItem(id: string): Promise<void> {
 }
 export function adminClearItemBids(id: string): Promise<{ cleared: number }> {
   return request(`/admin/items/${id}/bids`, { method: 'DELETE' });
+}
+export function adminFetchItemBids(id: string): Promise<{ bids: AdminBid[] }> {
+  return request(`/admin/items/${id}/bids`);
+}
+export function adminDeleteBid(bidId: string): Promise<void> {
+  return request(`/admin/bids/${bidId}`, { method: 'DELETE' });
 }
 export function adminFetchResults(): Promise<{ results: AuctionResult[] }> {
   return request('/admin/results');

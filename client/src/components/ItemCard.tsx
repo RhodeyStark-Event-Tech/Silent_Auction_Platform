@@ -1,35 +1,18 @@
-import { useEffect, useState } from 'react';
-import type { AuctionItem, PublicBid } from '../types';
-import { fetchItemBids } from '../api';
+import { useState } from 'react';
+import type { AuctionItem } from '../types';
 import { money, itemEmoji } from '../utils/format';
 import { BidList } from './BidList';
 
 interface ItemCardProps {
   item: AuctionItem;
-  /** Bumped by the parent after a successful bid to trigger a refresh. */
-  refreshKey: number;
   onBid: (item: AuctionItem) => void;
 }
 
-export function ItemCard({ item, refreshKey, onBid }: ItemCardProps): JSX.Element {
-  const [bids, setBids] = useState<PublicBid[]>([]);
+export function ItemCard({ item, onBid }: ItemCardProps): JSX.Element {
   const [imgFailed, setImgFailed] = useState(false);
   const isMultiple = item.quantity > 1;
 
-  useEffect(() => {
-    let active = true;
-    fetchItemBids(item.id)
-      .then((res) => {
-        if (active) setBids(res.bids);
-      })
-      .catch(() => {
-        /* leaderboard is non-critical; ignore transient errors */
-      });
-    return () => {
-      active = false;
-    };
-  }, [item.id, refreshKey]);
-
+  // Leaderboard is embedded in the item from /api/items — no extra fetch.
   const showImage = item.image_url && !imgFailed;
 
   return (
@@ -95,7 +78,7 @@ export function ItemCard({ item, refreshKey, onBid }: ItemCardProps): JSX.Elemen
 
         <div>
           <h4 className="visually-hidden">Current bids for {item.title}</h4>
-          <BidList bids={bids} winningCount={item.quantity} />
+          <BidList bids={item.bids} winningCount={item.quantity} />
         </div>
 
         <button

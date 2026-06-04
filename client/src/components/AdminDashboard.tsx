@@ -32,7 +32,7 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
   async function loadItems(): Promise<void> {
     setLoading(true);
     try {
-      const res = await fetchItems();
+      const res = await fetchItems({ fresh: true });
       setItems(res.items);
       setError(null);
     } catch (err) {

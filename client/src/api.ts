@@ -41,8 +41,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 // --- Public ---
-export function fetchItems(): Promise<{ items: AuctionItem[] }> {
-  return request('/items');
+// `fresh` appends a cache-busting param so the response skips the CDN cache —
+// used right after placing a bid (and by admin) to guarantee live data.
+export function fetchItems(opts?: { fresh?: boolean }): Promise<{ items: AuctionItem[] }> {
+  return request(opts?.fresh ? `/items?t=${Date.now()}` : '/items');
 }
 
 export function fetchItemBids(itemId: string): Promise<{ bids: PublicBid[] }> {
@@ -77,7 +79,7 @@ export function adminVerify(): Promise<{ role: string }> {
 
 export type ItemFormInput = Omit<
   AuctionItem,
-  'id' | 'sort_order' | 'current_high_bid' | 'next_minimum_bid' | 'bid_count'
+  'id' | 'sort_order' | 'current_high_bid' | 'next_minimum_bid' | 'bid_count' | 'bids'
 > & { sort_order?: number };
 
 export function adminCreateItem(input: ItemFormInput): Promise<{ item: AuctionItem }> {

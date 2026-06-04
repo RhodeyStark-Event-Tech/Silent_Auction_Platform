@@ -15,6 +15,8 @@ export interface AuctionItem {
   current_high_bid: number | null;
   next_minimum_bid: number;
   bid_count: number;
+  /** Anonymised leaderboard, embedded in the listing response. */
+  bids: PublicBid[];
 }
 
 export interface PublicBid {

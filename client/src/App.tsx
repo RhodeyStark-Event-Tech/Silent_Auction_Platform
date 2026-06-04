@@ -22,9 +22,9 @@ export default function App(): JSX.Element {
   const [view, setView] = useState<View>('public');
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const loadItems = useCallback(async (): Promise<void> => {
+  const loadItems = useCallback(async (fresh = false): Promise<void> => {
     try {
-      const res = await fetchItems();
+      const res = await fetchItems(fresh ? { fresh: true } : undefined);
       setItems(res.items);
       setLoadError(null);
     } catch {
@@ -35,7 +35,9 @@ export default function App(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    void loadItems();
+    // Initial load uses the CDN cache; reloads after a bid (refreshKey > 0)
+    // bypass it so the bidder sees their own bid immediately.
+    void loadItems(refreshKey > 0);
   }, [loadItems, refreshKey]);
 
   // Restore an existing admin session on load.
@@ -105,7 +107,6 @@ export default function App(): JSX.Element {
                 <ItemCard
                   key={item.id}
                   item={item}
-                  refreshKey={refreshKey}
                   onBid={(it) => setBidItem(it)}
                 />
               ))}

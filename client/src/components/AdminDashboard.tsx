@@ -3,6 +3,7 @@ import type { AuctionItem, AuctionResult } from '../types';
 import {
   fetchItems,
   adminDeleteItem,
+  adminClearItemBids,
   adminFetchResults,
   adminNotifyWinners,
   adminExportWinners,
@@ -73,6 +74,22 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
     if (!window.confirm(`Delete "${item.title}"? This also removes its bids.`)) return;
     try {
       await adminDeleteItem(item.id);
+      await loadItems();
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async function handleClearBids(item: AuctionItem): Promise<void> {
+    if (
+      !window.confirm(
+        `Clear all ${item.bid_count} bid(s) for "${item.title}"? The item stays; this cannot be undone.`,
+      )
+    )
+      return;
+    try {
+      const res = await adminClearItemBids(item.id);
+      setNotice(`Cleared ${res.cleared} bid(s) from "${item.title}".`);
       await loadItems();
     } catch (err) {
       handleError(err);
@@ -197,6 +214,15 @@ export function AdminDashboard({ onLogout, onExit }: AdminDashboardProps): JSX.E
                   <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(item)}>
                     Edit
                   </button>
+                  {item.bid_count > 0 && (
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      onClick={() => handleClearBids(item)}
+                    >
+                      Clear bids
+                    </button>
+                  )}
                   <button type="button" className="btn btn--danger btn--sm" onClick={() => handleDelete(item)}>
                     Delete
                   </button>

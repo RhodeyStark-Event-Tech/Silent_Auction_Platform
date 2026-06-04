@@ -94,6 +94,9 @@ export function adminUpdateItem(
 export function adminDeleteItem(id: string): Promise<void> {
   return request(`/admin/items/${id}`, { method: 'DELETE' });
 }
+export function adminClearItemBids(id: string): Promise<{ cleared: number }> {
+  return request(`/admin/items/${id}/bids`, { method: 'DELETE' });
+}
 export function adminFetchResults(): Promise<{ results: AuctionResult[] }> {
   return request('/admin/results');
 }

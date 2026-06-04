@@ -126,6 +126,19 @@ adminRouter.delete('/items/:id', async (req: Request, res: Response) => {
   res.status(204).end();
 });
 
+/** Clear ALL bids for one item (keeps the item). Useful for resetting test data. */
+adminRouter.delete('/items/:id/bids', async (req: Request, res: Response) => {
+  const { error, count } = await supabase
+    .from(BIDS_TABLE)
+    .delete({ count: 'exact' })
+    .eq('item_id', req.params.id);
+  if (error) {
+    res.status(500).json({ error: 'Failed to clear bids.' });
+    return;
+  }
+  res.json({ cleared: count ?? 0 });
+});
+
 /** Full bid detail (with PII) for the admin only. */
 adminRouter.get('/items/:id/bids', async (req: Request, res: Response) => {
   const { data, error } = await supabase

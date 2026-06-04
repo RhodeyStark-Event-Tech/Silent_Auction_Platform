@@ -624,8 +624,11 @@ img {
   }
 }
 
-/* Focused single-item view (QR landing): center one card on wider screens. */
-.items--single {
+/* Focused single-item view (QR landing): one full-width card, centered on
+   wider screens. Override the multi-column `.items` grid so the lone card isn't
+   squeezed into a 2-/3-column track on tablet/desktop. */
+.items.items--single {
+  grid-template-columns: 1fr;
   max-width: 480px;
   margin-inline: auto;
 }
